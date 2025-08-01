@@ -397,3 +397,84 @@ systemctl reload nginx
 	•	Sesuaikan konfigurasi VPS (PHP versi, MySQL password, dll) sesuai kebutuhan.
 
 Setelah Anda download, beri tahu saya jika ada yang ingin ditambahkan atau diubah agar lebih optimal sesuai kebutuhan Anda.
+
+
+
+
+Untuk membuat aplikasi pinjol siap pakai yang dapat langsung dideploy di VPS Anda (app.seoikrom.com), ikuti langkah berikut secara urut dan lengkap:
+
+### Struktur Direktori Final di VPS:
+/var/www/pinjol_app
+├── backend (Laravel API)
+├── frontend (Laravel Blade)
+└── dokumentasi_instalasi.pdf
+
+### Langkah Instalasi Backend Laravel:
+cd /var/www/pinjol_app/backend
+cp .env.example .env
+composer install --no-dev
+php artisan key:generate
+
+### Konfigurasi Database (MySQL):
+CREATE DATABASE pinjol_app;
+CREATE USER 'pinjol_user'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON pinjol_app.* TO 'pinjol_user'@'localhost';
+FLUSH PRIVILEGES;
+
+### Ubah file .env backend:
+DB_DATABASE=pinjol_app
+DB_USERNAME=pinjol_user
+DB_PASSWORD=password
+
+### Jalankan migrasi database:
+php artisan migrate --seed
+
+### Langkah Instalasi Frontend Laravel:
+cd /var/www/pinjol_app/frontend
+cp .env.example .env
+composer install --no-dev
+npm install && npm run build
+php artisan key:generate
+
+### Konfigurasi Nginx:
+/etc/nginx/sites-available/pinjol_backend:
+server {
+    listen 80;
+    server_name api.app.seoikrom.com;
+    root /var/www/pinjol_app/backend/public;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    }
+}
+
+/etc/nginx/sites-available/pinjol_frontend:
+server {
+    listen 80;
+    server_name app.seoikrom.com;
+    root /var/www/pinjol_app/frontend/public;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    }
+}
+
+### Aktifkan konfigurasi Nginx:
+ln -s /etc/nginx/sites-available/pinjol_backend /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/pinjol_frontend /etc/nginx/sites-enabled/
+systemctl reload nginx
+
+Sekarang, akses aplikasi melalui:
+- Frontend: http://app.seoikrom.com
+- Backend (API): http://api.app.seoikrom.com
+
