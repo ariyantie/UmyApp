@@ -234,4 +234,167 @@ Total	± 2 minggu
 
 ⸻
 
-✅ Silakan konfirmasi atau sesuaikan detailnya, agar saya bisa langsung memulai langkah teknis implementasinya untuk Anda.
+Berikut adalah full roadmap pekerjaan untuk aplikasi yang Anda inginkan, lengkap dengan detail tahapan teknis, agar Anda bisa langsung memulai pemasangan di VPS Anda.
+
+✅ Tahapan Realisasi:
+
+Saya akan siapkan ZIP lengkap untuk aplikasi Anda yang terdiri dari:
+	•	Backend Laravel (REST API)
+	•	Frontend Laravel (Blade/Tailwind)
+	•	Dokumentasi Instalasi (PDF)
+
+⸻
+
+📂 Struktur ZIP Final
+
+pinjol_app_umypos.zip
+├── backend_laravel/
+│   ├── app
+│   ├── bootstrap
+│   ├── config
+│   ├── database
+│   ├── public
+│   ├── resources
+│   ├── routes
+│   ├── storage
+│   ├── tests
+│   ├── .env.example
+│   ├── composer.json
+│   └── artisan
+│
+├── frontend_laravel/
+│   ├── app
+│   ├── bootstrap
+│   ├── config
+│   ├── database
+│   ├── public
+│   ├── resources/views (Blade files)
+│   ├── routes
+│   ├── storage
+│   ├── .env.example
+│   ├── package.json (Tailwind)
+│   └── artisan
+│
+└── dokumentasi_instalasi.pdf
+
+
+⸻
+
+🚀 Step-by-step Instalasi di VPS Anda
+
+Persiapan VPS:
+
+apt update && apt upgrade -y
+apt install nginx mysql-server php8.2-fpm php8.2-mysql php8.2-zip php8.2-curl php8.2-gd php8.2-mbstring php8.2-xml php8.2-tokenizer php8.2-bcmath unzip -y
+
+Siapkan Direktori:
+
+mkdir -p /var/www/pinjol/backend
+mkdir -p /var/www/pinjol/frontend
+
+Upload ZIP ke VPS:
+
+cd /var/www/pinjol
+# Upload dan ekstrak di sini
+unzip pinjol_app_umypos.zip
+mv backend_laravel/* backend/
+mv frontend_laravel/* frontend/
+
+Install Backend Laravel:
+
+cd backend
+cp .env.example .env
+composer install --no-dev
+php artisan key:generate
+
+Setup Database MySQL:
+
+CREATE DATABASE pinjol_db;
+CREATE USER 'pinjol_user'@'localhost' IDENTIFIED BY 'passwordAnda';
+GRANT ALL ON pinjol_db.* TO 'pinjol_user'@'localhost';
+FLUSH PRIVILEGES;
+
+Edit .env backend:
+
+DB_DATABASE=pinjol_db
+DB_USERNAME=pinjol_user
+DB_PASSWORD=passwordAnda
+
+Migrasi DB:
+
+php artisan migrate --seed
+
+Install Frontend Laravel:
+
+cd ../frontend
+cp .env.example .env
+composer install --no-dev
+npm install && npm run build
+php artisan key:generate
+
+Konfigurasi Nginx:
+
+File /etc/nginx/sites-available/pinjol_backend:
+
+server {
+    listen 80;
+    server_name api.domain.com;
+    root /var/www/pinjol/backend/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+File /etc/nginx/sites-available/pinjol_frontend:
+
+server {
+    listen 80;
+    server_name app.domain.com;
+    root /var/www/pinjol/frontend/public;
+
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+Aktifkan konfigurasi:
+
+ln -s /etc/nginx/sites-available/pinjol_backend /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/pinjol_frontend /etc/nginx/sites-enabled/
+systemctl reload nginx
+
+⸻
+
+⸻
+
+📖 Catatan:
+	•	Ganti api.domain.com dan app.domain.com sesuai dengan domain Anda.
+	•	Sesuaikan konfigurasi VPS (PHP versi, MySQL password, dll) sesuai kebutuhan.
+
+Setelah Anda download, beri tahu saya jika ada yang ingin ditambahkan atau diubah agar lebih optimal sesuai kebutuhan Anda.
