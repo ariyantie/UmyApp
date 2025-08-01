@@ -1,5 +1,4 @@
-Tentu! Berikut adalah gambaran lengkap, teknis, dan terstruktur tentang bagaimana membuat aplikasi yang mirip dengan https://h5.umypos-id.com/guide:
-
+#DOKUMENTASI APP UMY APP
 ⸻
 
 📌 Analisa Cepat Aplikasi Referensi (umypos-id)
